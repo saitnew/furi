@@ -66,8 +66,8 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
             animate={{ x: 0 }}
             exit={{ x: '-100%' }}
             transition={{
-              duration: 0.28,
-              ease: [0.32, 0.72, 0, 1], // iOS native drawer easing curve
+              duration: 0.52,
+              ease: [0.16, 1, 0.3, 1], // Ultra-smooth fluid glide
             }}
             className="fixed top-0 bottom-0 left-0 z-50 w-[82%] max-w-[320px] liquid-glass-darker border-r border-white/80 shadow-[0_25px_60px_-15px_rgba(244,63,94,0.35)] flex flex-col justify-between p-5 pt-safe pb-safe overflow-y-auto no-scrollbar"
             style={{ willChange: 'transform', transform: 'translateZ(0)' }}

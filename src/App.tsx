@@ -58,8 +58,8 @@ export default function App() {
                 animate={{ opacity: 1 }}
                 exit={{
                   opacity: 0,
-                  scale: 0.96,
-                  transition: { duration: 0.25, ease: 'easeOut' },
+                  scale: 0.94,
+                  transition: { duration: 0.55, ease: [0.16, 1, 0.3, 1] },
                 }}
                 className="w-full h-full flex flex-col items-center justify-center"
                 style={{ willChange: 'opacity, transform', transform: 'translateZ(0)' }}
@@ -72,12 +72,12 @@ export default function App() {
             ) : (
               <motion.div
                 key={activeTab}
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -15 }}
+                initial={{ opacity: 0, y: 25, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -20, scale: 0.98 }}
                 transition={{
-                  duration: 0.22,
-                  ease: [0.25, 1, 0.5, 1],
+                  duration: 0.5,
+                  ease: [0.16, 1, 0.3, 1], // Apple-style fluid easing
                 }}
                 className="w-full flex flex-col items-center justify-start min-h-[70vh] py-2"
                 style={{ willChange: 'opacity, transform', transform: 'translateZ(0)' }}

@@ -53,10 +53,10 @@ export const FullscreenViewer: React.FC<FullscreenViewerProps> = ({
 
           {/* Fullscreen Photo Container */}
           <motion.div
-            initial={{ scale: 0.92, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.92, opacity: 0 }}
-            transition={{ duration: 0.22, ease: [0.25, 1, 0.5, 1] }}
+            initial={{ scale: 0.9, opacity: 0, y: 15 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.9, opacity: 0, y: 15 }}
+            transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
             onClick={(e) => e.stopPropagation()}
             className="relative max-w-lg w-full max-h-[82vh] rounded-3xl overflow-hidden liquid-glass-card p-2 border border-white/60 shadow-[0_30px_70px_rgba(0,0,0,0.4)] flex flex-col items-center"
             style={{ willChange: 'transform, opacity', transform: 'translateZ(0)' }}
