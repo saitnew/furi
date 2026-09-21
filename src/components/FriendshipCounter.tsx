@@ -80,15 +80,15 @@ export const FriendshipCounter: React.FC = () => {
 
   const spawnHearts = (e: React.MouseEvent) => {
     const rect = e.currentTarget.getBoundingClientRect();
-    const newHearts = Array.from({ length: 12 }).map((_, i) => ({
+    const newHearts = Array.from({ length: 6 }).map((_, i) => ({
       id: Date.now() + i,
-      x: rect.width / 2 + (Math.random() * 80 - 40),
-      y: rect.height / 2 + (Math.random() * 40 - 20),
+      x: rect.width / 2 + (Math.random() * 60 - 30),
+      y: rect.height / 2 + (Math.random() * 30 - 15),
     }));
-    setHearts((prev) => [...prev, ...newHearts]);
+    setHearts((prev) => [...prev.slice(-6), ...newHearts]);
     setTimeout(() => {
       setHearts((prev) => prev.filter((h) => !newHearts.some((nh) => nh.id === h.id)));
-    }, 1800);
+    }, 1200);
   };
 
   const resetToToday = () => {
