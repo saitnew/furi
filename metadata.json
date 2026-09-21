@@ -1,0 +1,6 @@
+{
+  "name": "Фури мальчики",
+  "description": "Эстетичный мобильный сайт в розовой стилистике Liquid Glass с интерактивными профилями и счетчиком дружбы",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
