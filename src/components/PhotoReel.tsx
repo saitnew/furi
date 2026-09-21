@@ -9,20 +9,19 @@ interface PhotoReelProps {
 
 export const PhotoReel: React.FC<PhotoReelProps> = ({ profile, onOpenFullscreen }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [dragOffset, setDragOffset] = useState(0);
-  const [isSwiping, setIsSwiping] = useState(false);
+
+  const containerRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
 
   const touchStartY = useRef<number | null>(null);
-  const currentDrag = useRef<number>(0);
-  const lastTouchTime = useRef<number>(0);
-  const lastTouchY = useRef<number>(0);
-  const velocityY = useRef<number>(0);
+  const currentDragY = useRef<number>(0);
   const isDragging = useRef<boolean>(false);
+  const isAnimating = useRef<boolean>(false);
 
   const photos = profile.photos;
   const totalPhotos = photos.length;
 
-  // Preload images into memory
+  // Preload all images so there is never a flash or render pause
   useEffect(() => {
     photos.forEach((src) => {
       const img = new Image();
@@ -30,76 +29,93 @@ export const PhotoReel: React.FC<PhotoReelProps> = ({ profile, onOpenFullscreen 
     });
   }, [photos]);
 
+  // Reset index when switching profiles
   useEffect(() => {
     setCurrentIndex(0);
-    setDragOffset(0);
+    if (trackRef.current) {
+      trackRef.current.style.transition = 'none';
+      trackRef.current.style.transform = 'translate3d(0, 0, 0)';
+    }
   }, [profile.id]);
 
-  const goToPhoto = (index: number) => {
-    if (index >= 0 && index < totalPhotos) {
-      setCurrentIndex(index);
-    }
-  };
+  // Smooth cinematic gliding transition
+  const animateToSlide = useCallback((index: number) => {
+    if (!trackRef.current) return;
+    isAnimating.current = true;
+    setCurrentIndex(index);
+
+    // 0.75s ultra-fluid Apple Spring/Bezier curve
+    trackRef.current.style.transition = 'transform 0.75s cubic-bezier(0.16, 1, 0.3, 1)';
+    trackRef.current.style.transform = `translate3d(0, -${index * 100}%, 0)`;
+
+    setTimeout(() => {
+      isAnimating.current = false;
+    }, 750);
+  }, []);
 
   const handleNext = useCallback(() => {
-    setCurrentIndex((prev) => (prev < totalPhotos - 1 ? prev + 1 : 0));
-  }, [totalPhotos]);
+    if (isAnimating.current) return;
+    const nextIdx = currentIndex < totalPhotos - 1 ? currentIndex + 1 : 0;
+    animateToSlide(nextIdx);
+  }, [currentIndex, totalPhotos, animateToSlide]);
 
   const handlePrev = useCallback(() => {
-    setCurrentIndex((prev) => (prev > 0 ? prev - 1 : totalPhotos - 1));
-  }, [totalPhotos]);
+    if (isAnimating.current) return;
+    const prevIdx = currentIndex > 0 ? currentIndex - 1 : totalPhotos - 1;
+    animateToSlide(prevIdx);
+  }, [currentIndex, totalPhotos, animateToSlide]);
 
-  // Touch interactions with live 1:1 finger tracking & momentum
+  const goToPhoto = (index: number) => {
+    if (isAnimating.current || index === currentIndex) return;
+    animateToSlide(index);
+  };
+
+  // Direct DOM Touch handling - avoids React 60Hz re-render overhead for true 120Hz display
   const onTouchStart = (e: React.TouchEvent) => {
+    if (isAnimating.current) return;
     touchStartY.current = e.touches[0].clientY;
-    lastTouchY.current = e.touches[0].clientY;
-    lastTouchTime.current = performance.now();
-    currentDrag.current = 0;
-    velocityY.current = 0;
+    currentDragY.current = 0;
     isDragging.current = true;
-    setIsSwiping(true);
+
+    if (trackRef.current) {
+      trackRef.current.style.transition = 'none';
+    }
   };
 
   const onTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging.current || touchStartY.current === null) return;
-    const clientY = e.touches[0].clientY;
-    const now = performance.now();
-    const dt = now - lastTouchTime.current;
-    
-    if (dt > 0) {
-      velocityY.current = (clientY - lastTouchY.current) / dt;
-    }
-    lastTouchY.current = clientY;
-    lastTouchTime.current = now;
+    if (!isDragging.current || touchStartY.current === null || !trackRef.current) return;
+    const diff = e.touches[0].clientY - touchStartY.current;
+    currentDragY.current = diff;
 
-    const diff = clientY - touchStartY.current;
-    currentDrag.current = diff;
-    setDragOffset(diff);
+    // Apply direct style transform without triggering React setState
+    const baseOffset = -currentIndex * 100;
+    trackRef.current.style.transform = `translate3d(0, calc(${baseOffset}% + ${diff}px), 0)`;
   };
 
   const onTouchEnd = () => {
     if (!isDragging.current) return;
     isDragging.current = false;
-    setIsSwiping(false);
-
-    const delta = currentDrag.current;
-    const vel = velocityY.current;
-    currentDrag.current = 0;
-    setDragOffset(0);
+    const delta = currentDragY.current;
     touchStartY.current = null;
+    currentDragY.current = 0;
 
-    // Swipe if moved > 50px or flicked with speed > 0.4px/ms
-    if (delta < -45 || vel < -0.4) {
-      handleNext();
-    } else if (delta > 45 || vel > 0.4) {
-      handlePrev();
+    // Sensitivity threshold: 35px
+    if (delta < -35) {
+      const nextIdx = currentIndex < totalPhotos - 1 ? currentIndex + 1 : 0;
+      animateToSlide(nextIdx);
+    } else if (delta > 35) {
+      const prevIdx = currentIndex > 0 ? currentIndex - 1 : totalPhotos - 1;
+      animateToSlide(prevIdx);
+    } else {
+      // Snap back smoothly
+      animateToSlide(currentIndex);
     }
   };
 
   return (
     <div className="w-full flex flex-col items-center select-none pb-24">
       {/* Top Profile Header */}
-      <div className="w-full max-w-sm mb-3 text-center transition-all duration-500 ease-out">
+      <div className="w-full max-w-sm mb-3 text-center transition-all duration-700 ease-out">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full liquid-glass border border-white/60 mb-1.5 shadow-xs">
           <Sparkles className="w-3.5 h-3.5 text-pink-500 fill-pink-300" />
           <span className="text-[11px] font-bold tracking-wider text-pink-800 uppercase">
@@ -120,12 +136,13 @@ export const PhotoReel: React.FC<PhotoReelProps> = ({ profile, onOpenFullscreen 
 
           {/* Swipeable Viewport */}
           <div
+            ref={containerRef}
             onTouchStart={onTouchStart}
             onTouchMove={onTouchMove}
             onTouchEnd={onTouchEnd}
             className="w-full h-full rounded-[20px] overflow-hidden relative bg-pink-100/50 shadow-inner group touch-none cursor-pointer"
             onClick={() => {
-              if (Math.abs(dragOffset) < 5) {
+              if (Math.abs(currentDragY.current) < 5) {
                 onOpenFullscreen(
                   photos[currentIndex],
                   `${profile.tabTitle} • Фото ${currentIndex + 1}/${totalPhotos}`
@@ -134,17 +151,15 @@ export const PhotoReel: React.FC<PhotoReelProps> = ({ profile, onOpenFullscreen 
             }}
           >
             {/* 
-              Ultra-smooth 120Hz Apple-like spring cubic-bezier track:
-              When dragging: 0ms delay, follows finger 1:1.
-              When released: 650ms luxurious, cinematic, buttery smooth gliding ease.
+              Direct Hardware Composite Layer:
+              Controlled via trackRef.style.transform in touch handlers.
+              Bypasses React DOM diffing completely on 120Hz displays.
             */}
             <div
+              ref={trackRef}
               className="w-full h-full"
               style={{
-                transform: `translate3d(0, calc(-${currentIndex * 100}% + ${dragOffset}px), 0)`,
-                transition: isSwiping
-                  ? 'none'
-                  : 'transform 0.65s cubic-bezier(0.16, 1, 0.3, 1)',
+                transform: `translate3d(0, -${currentIndex * 100}%, 0)`,
                 willChange: 'transform',
               }}
             >
@@ -153,7 +168,7 @@ export const PhotoReel: React.FC<PhotoReelProps> = ({ profile, onOpenFullscreen 
                   <img
                     src={src}
                     alt={`${profile.tabTitle} фото ${idx + 1}`}
-                    loading={idx === 0 ? 'eager' : 'lazy'}
+                    loading="eager"
                     decoding="async"
                     referrerPolicy="no-referrer"
                     className="w-full h-full object-cover object-center pointer-events-none select-none"
@@ -203,7 +218,7 @@ export const PhotoReel: React.FC<PhotoReelProps> = ({ profile, onOpenFullscreen 
             </button>
           </div>
 
-          {/* Floating Transparent/Glassy Vertical Dots inside the photo container */}
+          {/* Floating Transparent/Glassy Vertical Dots */}
           <div className="absolute right-3.5 top-1/2 -translate-y-1/2 flex flex-col items-center gap-2.5 z-20 py-2.5 px-1.5 rounded-full bg-black/25 backdrop-blur-xs border border-white/20 shadow-md">
             {photos.map((_, idx) => {
               const isActive = currentIndex === idx;
@@ -219,10 +234,10 @@ export const PhotoReel: React.FC<PhotoReelProps> = ({ profile, onOpenFullscreen 
                   title={`Фото ${idx + 1}`}
                 >
                   <span
-                    className={`w-2 h-2 rounded-full block transition-all duration-500 ease-out ${
+                    className={`w-2 h-2 rounded-full block transition-all duration-700 ease-out ${
                       isActive
                         ? 'bg-white scale-140 shadow-[0_0_8px_rgba(255,255,255,0.95)]'
-                        : 'bg-white/40 scale-100 hover:bg-white/70'
+                        : 'bg-white/40 scale-100'
                     }`}
                   />
                 </button>
@@ -235,7 +250,7 @@ export const PhotoReel: React.FC<PhotoReelProps> = ({ profile, onOpenFullscreen 
       {/* Biography Section under the 3 photos */}
       <div
         key={`bio-${profile.id}`}
-        className="w-full max-w-sm mt-3 liquid-glass-card p-5 rounded-[24px] border border-white/80 shadow-md relative overflow-hidden transition-all duration-500 ease-out"
+        className="w-full max-w-sm mt-3 liquid-glass-card p-5 rounded-[24px] border border-white/80 shadow-md relative overflow-hidden transition-all duration-700 ease-out"
       >
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-1.5 text-xs font-bold text-pink-800 uppercase tracking-wider">
