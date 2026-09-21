@@ -62,16 +62,15 @@ export const SidebarDrawer: React.FC<SidebarDrawerProps> = ({
           {/* Liquid Glass Sidebar Drawer */}
           <motion.aside
             id="sidebar-drawer"
-            initial={{ x: '-100%', opacity: 0.8 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: '-100%', opacity: 0.8 }}
+            initial={{ x: '-100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '-100%' }}
             transition={{
-              type: 'spring',
-              stiffness: 300,
-              damping: 30,
-              mass: 0.8,
+              duration: 0.28,
+              ease: [0.32, 0.72, 0, 1], // iOS native drawer easing curve
             }}
             className="fixed top-0 bottom-0 left-0 z-50 w-[82%] max-w-[320px] liquid-glass-darker border-r border-white/80 shadow-[0_25px_60px_-15px_rgba(244,63,94,0.35)] flex flex-col justify-between p-5 pt-safe pb-safe overflow-y-auto no-scrollbar"
+            style={{ willChange: 'transform', transform: 'translateZ(0)' }}
           >
             {/* Specular gloss top light */}
             <div className="absolute top-0 inset-x-0 h-16 bg-gradient-to-b from-white/70 to-transparent pointer-events-none" />

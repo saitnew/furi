@@ -78,14 +78,14 @@ export const PhotoReel: React.FC<PhotoReelProps> = ({ profile, onOpenFullscreen 
 
           {/* Swipe gesture card */}
           <div className="w-full h-full rounded-[22px] overflow-hidden relative bg-pink-100/60 shadow-inner group">
-            <AnimatePresence custom={direction} mode="wait">
+            <AnimatePresence custom={direction} mode="popLayout" initial={false}>
               <motion.div
                 key={`${profile.id}-${currentIndex}`}
                 custom={direction}
                 initial={{
                   opacity: 0,
-                  y: direction > 0 ? 80 : -80,
-                  scale: 0.95,
+                  y: direction > 0 ? 60 : -60,
+                  scale: 0.96,
                 }}
                 animate={{
                   opacity: 1,
@@ -94,21 +94,20 @@ export const PhotoReel: React.FC<PhotoReelProps> = ({ profile, onOpenFullscreen 
                 }}
                 exit={{
                   opacity: 0,
-                  y: direction > 0 ? -80 : 80,
-                  scale: 0.95,
+                  y: direction > 0 ? -60 : 60,
+                  scale: 0.96,
                 }}
                 transition={{
-                  type: 'spring',
-                  stiffness: 300,
-                  damping: 28,
+                  duration: 0.28,
+                  ease: [0.25, 1, 0.5, 1], // Cubic bezier smooth ease-out
                 }}
                 drag="y"
                 dragConstraints={{ top: 0, bottom: 0 }}
-                dragElastic={0.4}
+                dragElastic={0.2}
                 onDragEnd={(_, info) => {
-                  if (info.offset.y < -40) {
+                  if (info.offset.y < -30 || info.velocity.y < -300) {
                     handleNext();
-                  } else if (info.offset.y > 40) {
+                  } else if (info.offset.y > 30 || info.velocity.y > 300) {
                     handlePrev();
                   }
                 }}
@@ -118,7 +117,8 @@ export const PhotoReel: React.FC<PhotoReelProps> = ({ profile, onOpenFullscreen 
                     `${profile.tabTitle} • Фото ${currentIndex + 1}/${totalPhotos}`
                   )
                 }
-                className="w-full h-full cursor-pointer relative"
+                className="w-full h-full cursor-pointer relative touch-pan-x"
+                style={{ willChange: 'transform, opacity', transform: 'translateZ(0)' }}
               >
                 <img
                   src={photos[currentIndex]}

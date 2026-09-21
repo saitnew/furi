@@ -17,22 +17,20 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ coverImage, onEnter 
       <div className="w-full max-w-sm flex flex-col items-center my-auto">
         {/* The First Photo Card */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.88, y: 25 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
+          initial={{ opacity: 0, scale: 0.94 }}
+          animate={{ opacity: 1, scale: 1 }}
           exit={{
             opacity: 0,
-            scale: 0.82,
-            y: -80,
-            filter: 'blur(12px)',
-            transition: { duration: 0.55, ease: [0.32, 0.72, 0, 1] },
+            scale: 0.92,
+            y: -40,
+            transition: { duration: 0.25, ease: 'easeOut' },
           }}
           transition={{
-            type: 'spring',
-            stiffness: 260,
-            damping: 24,
-            delay: 0.15,
+            duration: 0.35,
+            ease: [0.25, 1, 0.5, 1],
           }}
           className="relative w-full aspect-[4/3] rounded-[28px] p-2 liquid-glass-card group shadow-[0_25px_50px_-12px_rgba(244,114,182,0.35)] mb-6"
+          style={{ willChange: 'transform, opacity', transform: 'translateZ(0)' }}
         >
           {/* Glass specular sheen line */}
           <div className="absolute inset-x-4 top-2 h-8 rounded-t-[20px] bg-gradient-to-b from-white/60 to-transparent pointer-events-none z-10" />

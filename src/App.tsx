@@ -50,7 +50,7 @@ export default function App() {
 
         {/* Dynamic Main Stage */}
         <main className="flex-1 w-full flex flex-col items-center justify-center relative pt-16 px-3">
-          <AnimatePresence mode="wait">
+          <AnimatePresence mode="wait" initial={false}>
             {!hasEntered ? (
               <motion.div
                 key="splash-screen"
@@ -58,11 +58,11 @@ export default function App() {
                 animate={{ opacity: 1 }}
                 exit={{
                   opacity: 0,
-                  scale: 0.94,
-                  filter: 'blur(8px)',
-                  transition: { duration: 0.45 },
+                  scale: 0.96,
+                  transition: { duration: 0.25, ease: 'easeOut' },
                 }}
                 className="w-full h-full flex flex-col items-center justify-center"
+                style={{ willChange: 'opacity, transform', transform: 'translateZ(0)' }}
               >
                 <SplashScreen
                   coverImage={COVER_IMAGE}
@@ -72,15 +72,15 @@ export default function App() {
             ) : (
               <motion.div
                 key={activeTab}
-                initial={{ opacity: 0, y: 25 }}
+                initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -25 }}
+                exit={{ opacity: 0, y: -15 }}
                 transition={{
-                  type: 'spring',
-                  stiffness: 280,
-                  damping: 26,
+                  duration: 0.22,
+                  ease: [0.25, 1, 0.5, 1],
                 }}
                 className="w-full flex flex-col items-center justify-start min-h-[70vh] py-2"
+                style={{ willChange: 'opacity, transform', transform: 'translateZ(0)' }}
               >
                 {activeTab === 'friendship' ? (
                   <FriendshipCounter />
